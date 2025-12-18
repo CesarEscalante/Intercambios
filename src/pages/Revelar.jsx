@@ -4,7 +4,7 @@ import { useSearchParams  } from "react-router-dom";
 
 export default function Revelar() {
   const [searchParams] = useSearchParams();
-const token = searchParams.get("token");
+  const token = searchParams.get("token");
   const [resultado, setResultado] = useState(null);
   const [mostrar, setMostrar] = useState(false);
   const [sorteoId, setSorteoId] = useState(null);
