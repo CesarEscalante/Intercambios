@@ -120,7 +120,7 @@ export default function Grupo() {
 
                   {grupo.sorteado && (
                     <small style={{ display: "block", marginTop: 6 }}>
-                      🔗 {window.location.origin}/revelar/{p.magic_token}
+                      🔗 <a href={window.location.origin + "/revelar/" + p.magic_token}>Santa secreto</a>
                     </small>
                   )}
                 </div>
