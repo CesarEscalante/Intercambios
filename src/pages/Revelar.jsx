@@ -63,10 +63,13 @@ export default function Revelar() {
       <div className="card" style={{ textAlign: "center" }}>
         {!mostrar ? (
           <>
-            <h1>🎁 ¿Listo para descubrir?</h1>
+            <h1>🎁🎅🎄 ¿Listo para descubrir tu santa secreto?</h1>
 
             <p className="subtitle">
-              Presiona el botón para revelar a quién le darás tu regalo
+             👀 1. Presiona el botón para revelar a quién le darás tu regalo
+             🤫 2. Anote a la persona que se reveló en un lugar seguro sin decirle a nadie
+             🚪 3. Cierra la aplicación 
+             🏃‍♂️ 5. Corra a comprar el regalo 
             </p>
 
             <button
@@ -92,7 +95,8 @@ export default function Revelar() {
                 className="empty"
                 style={{ marginTop: 16 }}
               >
-                👁️ Este resultado ya fue revelado anteriormente
+                👁️🕵️🔒 Este resultado ya fue revelado anteriormente. 
+                😎✨🛡️ Recuerda guardar bien tus santa secreto.
               </p>
             )}
             {!resultado.yaRevelado && (
@@ -102,8 +106,12 @@ export default function Revelar() {
                 </h2>
 
                 <h1 style={{ marginTop: 12 }}>
-                  🎉 {resultado.recibe}
+                  🎉🎉🎉 {resultado.recibe} 🎉🎉🎉
                 </h1>
+
+                <h3>
+                  🔍 Recuerda guardar este resultado en un lugar seguro.
+                </h3>
               </div>
             )}
           </>

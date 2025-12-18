@@ -1,9 +1,9 @@
 /* eslint-disable react-hooks/exhaustive-deps */
- 
+
 import { useEffect, useState } from "react";
 import { supabase } from "../lib/supabase";
 import { generarSorteo } from "../utils/sorteo";
-import { useSearchParams , useNavigate } from "react-router-dom";
+import { useSearchParams, useNavigate } from "react-router-dom";
 import "../styles/styles.css";
 
 export default function Grupo() {
@@ -13,6 +13,7 @@ export default function Grupo() {
   const [grupo, setGrupo] = useState(null);
   const [participantes, setParticipantes] = useState([]);
   const [nombre, setNombre] = useState("");
+  const [sorteos, setSorteos] = useState([]);
 
   const cargarGrupo = async () => {
     const { data } = await supabase
@@ -24,10 +25,25 @@ export default function Grupo() {
     setGrupo(data);
   };
 
+  const cargarSorteos = async () => {
+    const { data, error } = await supabase
+      .from("sorteos")
+      .select("participante_id, revelado")
+      .eq("grupo_id", id);
+
+    if (error) {
+      console.error(error);
+      return;
+    }
+
+    setSorteos(data || []);
+  };
+
+
   const cargarParticipantes = async () => {
     const { data } = await supabase
       .from("participantes")
-      .select("*")
+      .select(`*`)
       .eq("grupo_id", id);
 
     setParticipantes(data || []);
@@ -82,10 +98,11 @@ export default function Grupo() {
       navigate("/");
       return;
     }
-    
-    cargarGrupo(id);
-    cargarParticipantes(id);
-  },[id]);
+
+    cargarGrupo();
+    cargarParticipantes();
+    cargarSorteos();
+  }, [id]);
 
   if (!grupo) return <p>Cargando...</p>;
 
@@ -98,20 +115,21 @@ export default function Grupo() {
           Administra participantes y realiza el sorteo
         </p>
 
-        <button
-          onClick={volver}
-          style={{ color: "white", marginBottom: 20 }}
-        >
-          ← Volver
-        </button>
+        <div style={{justifyContent:"center", display:"flex"}}>
+          <button
+            onClick={volver}
+            style={{ color: "white", marginBottom: 20, marginRight: 50 }}
+          >
+            ← Volver
+          </button>
 
-
-        <button
-          onClick={eliminarGrupo}
-          style={{ color: "red", marginBottom: 20 }}
-        >
-          🗑️ Eliminar grupo
-        </button>
+          <button
+            onClick={eliminarGrupo}
+            style={{ color: "red", marginBottom: 20 }}
+          >
+            🗑️ Eliminar grupo
+          </button>
+        </div>
 
         <h2>Participantes</h2>
 
@@ -134,19 +152,35 @@ export default function Grupo() {
           </p>
         ) : (
           <ul className="list">
-            {participantes.map((p) => (
-              <li key={p.id}>
-                <div className="groupBtn">
-                  {p.nombre}
+            {console.log(participantes)}
+            {participantes.map((p) => {
+              const sorteo = sorteos.find(
+                (s) => s.participante_id === p.id
+              );
 
-                  {grupo.sorteado && (
-                    <small style={{ display: "block", marginTop: 6 }}>
-                      🔗 <a href={window.location.origin + "/revelar?token=" + p.magic_token}>Santa secreto</a>
-                    </small>
-                  )}
-                </div>
-              </li>
-            ))}
+              const yaRevelado = sorteo?.revelado;
+              return (
+
+                <li key={p.id}>
+                  <div className="list">
+                    <h3 className="texto">{p.nombre}</h3>
+                    {grupo.sorteado && (
+                      <>
+                        <p className="texto">
+                          🔗 <a href={window.location.origin + "/revelar?token=" + p.magic_token}>Santa secreto</a>
+                        </p>
+                        <p className="texto">
+                          {yaRevelado ? "✅ Revelado" : "⏳ Pendiente"}
+                        </p>
+                      </>
+                    )}
+                  </div>
+                  <hr />
+
+                </li>
+              );
+            }
+            )}
           </ul>
         )}
 

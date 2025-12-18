@@ -54,6 +54,9 @@ body {
 .card h2 {
   color: #777676;
 }
+.card h3 {
+  color: #9b9696;
+}
 
 .subtitle {
   text-align: center;
@@ -107,11 +110,16 @@ body {
   cursor: pointer;
   color: #2a2929;
   font-size: 1rem;
-  text-align: left;
+  text-align: center;
 }
 
 .groupBtn:hover {
   background: #eef2ff;
+}
+
+.texto{
+  text-align: center;
+  color: #818181;
 }
 
 /* VACÍO */
