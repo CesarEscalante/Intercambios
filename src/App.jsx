@@ -8,8 +8,8 @@ function App() {
     <div className="app">
         <Routes>
           <Route path="/" element={<CrearGrupo />} />
-          <Route path="/grupo/:id" element={<Grupo />} />
-          <Route path="/revelar/:token" element={<Revelar />} />
+          <Route path="/grupo" element={<Grupo />} />
+          <Route path="/revelar" element={<Revelar />} />
         </Routes>
     </div>
 

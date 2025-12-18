@@ -1,9 +1,10 @@
 import { useEffect, useState } from "react";
 import { supabase } from "../lib/supabase";
-import { useParams } from "react-router-dom";
+import { useSearchParams  } from "react-router-dom";
 
 export default function Revelar() {
-  const { token } = useParams();
+  const [searchParams] = useSearchParams();
+const token = searchParams.get("token");
   const [resultado, setResultado] = useState(null);
   const [mostrar, setMostrar] = useState(false);
   const [sorteoId, setSorteoId] = useState(null);
@@ -15,7 +16,7 @@ export default function Revelar() {
         .select("id, nombre")
         .eq("magic_token", token)
         .single();
-        
+
       const { data: sorteo } = await supabase
         .from("sorteos")
         .select(`

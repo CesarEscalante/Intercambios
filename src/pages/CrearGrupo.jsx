@@ -65,7 +65,7 @@ export default function CrearGrupo() {
               <li key={g.id}>
                 <button
                   className="groupBtn"
-                  onClick={() => navigate(`/grupo/${g.id}`)}
+                  onClick={() => navigate(`/grupo?id=${g.id}`)}
                 >
                   🎁 {g.nombre}
                 </button>

@@ -3,11 +3,12 @@
 import { useEffect, useState } from "react";
 import { supabase } from "../lib/supabase";
 import { generarSorteo } from "../utils/sorteo";
-import { useParams, useNavigate } from "react-router-dom";
+import { useSearchParams , useNavigate } from "react-router-dom";
 import "../styles/styles.css";
 
 export default function Grupo() {
-  const { id } = useParams();
+  const [searchParams] = useSearchParams();
+  const id = searchParams.get("id")
   const navigate = useNavigate();
   const [grupo, setGrupo] = useState(null);
   const [participantes, setParticipantes] = useState([]);
@@ -57,6 +58,8 @@ export default function Grupo() {
 
     await supabase.from("grupos").update({ sorteado: true }).eq("id", id);
     alert("🎉 Sorteo realizado");
+    cargarGrupo();
+    cargarParticipantes();
   };
 
   const eliminarGrupo = async () => {
@@ -75,9 +78,13 @@ export default function Grupo() {
   };
 
   useEffect(() => {
-    if (!id) return;
-    cargarGrupo();
-    cargarParticipantes();
+    if (!id) {
+      navigate("/");
+      return;
+    }
+    
+    cargarGrupo(id);
+    cargarParticipantes(id);
   },[id]);
 
   if (!grupo) return <p>Cargando...</p>;
@@ -134,7 +141,7 @@ export default function Grupo() {
 
                   {grupo.sorteado && (
                     <small style={{ display: "block", marginTop: 6 }}>
-                      🔗 <a href={window.location.origin + "/revelar/" + p.magic_token}>Santa secreto</a>
+                      🔗 <a href={window.location.origin + "/revelar?token=" + p.magic_token}>Santa secreto</a>
                     </small>
                   )}
                 </div>
