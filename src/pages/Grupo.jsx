@@ -1,4 +1,5 @@
-/* eslint-disable react-hooks/set-state-in-effect */
+/* eslint-disable react-hooks/exhaustive-deps */
+ 
 import { useEffect, useState } from "react";
 import { supabase } from "../lib/supabase";
 import { generarSorteo } from "../utils/sorteo";
@@ -69,10 +70,15 @@ export default function Grupo() {
     navigate("/");
   };
 
+  const volver = () => {
+    navigate(-1);
+  };
+
   useEffect(() => {
+    if (!id) return;
     cargarGrupo();
     cargarParticipantes();
-  });
+  },[id]);
 
   if (!grupo) return <p>Cargando...</p>;
 
@@ -84,6 +90,14 @@ export default function Grupo() {
         <p className="subtitle">
           Administra participantes y realiza el sorteo
         </p>
+
+        <button
+          onClick={volver}
+          style={{ color: "white", marginBottom: 20 }}
+        >
+          ← Volver
+        </button>
+
 
         <button
           onClick={eliminarGrupo}

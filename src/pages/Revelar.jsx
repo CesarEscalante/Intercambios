@@ -10,14 +10,12 @@ export default function Revelar() {
 
   useEffect(() => {
     const cargar = async () => {
-      // 1️⃣ Buscar participante por token
       const { data: participante } = await supabase
         .from("participantes")
         .select("id, nombre")
         .eq("magic_token", token)
         .single();
-
-      // 2️⃣ Buscar resultado del sorteo
+        
       const { data: sorteo } = await supabase
         .from("sorteos")
         .select(`
