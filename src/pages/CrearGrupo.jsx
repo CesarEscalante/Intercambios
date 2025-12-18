@@ -1,13 +1,17 @@
+/* eslint-disable react-hooks/set-state-in-effect */
 import { useEffect, useState } from "react";
 import { supabase } from "../lib/supabase";
 import { useNavigate } from "react-router-dom";
 import "../styles/styles.css";
 
-
 export default function CrearGrupo() {
   const [nombre, setNombre] = useState("");
   const [grupos, setGrupos] = useState([]);
+  const [password, setPassword] = useState("");
+  const [autorizado, setAutorizado] = useState(false);
   const navigate = useNavigate();
+
+  const PASSWORD = import.meta.env.VITE_APP_PASSWORD;
 
   const cargarGrupos = async () => {
     const { data, error } = await supabase
@@ -24,18 +28,54 @@ export default function CrearGrupo() {
   };
 
   useEffect(() => {
-    // eslint-disable-next-line react-hooks/set-state-in-effect
-    cargarGrupos();
-  }, []);
+    if (autorizado) {
+      cargarGrupos();
+    }
+  }, [autorizado]);
+
+  const validarPassword = () => {
+    if (password === PASSWORD) {
+      setAutorizado(true);
+    } else {
+      alert("Contraseña incorrecta");
+    }
+  };
 
   const crearGrupo = async () => {
     if (!nombre.trim()) return;
 
     await supabase.from("grupos").insert({ nombre });
     setNombre("");
-    cargarGrupos(); // refresca lista
+    cargarGrupos();
   };
 
+  /* 🔒 PANTALLA DE PASSWORD */
+  if (!autorizado) {
+    return (
+      <div className="page">
+        <div className="card" style={{ maxWidth: 420 }}>
+          <h1>🔐 Acceso</h1>
+          <p className="subtitle">
+            Ingresa la contraseña para continuar
+          </p>
+
+          <div className="form">
+            <input
+              type="password"
+              placeholder="Contraseña"
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+            />
+            <button onClick={validarPassword}>
+              Entrar
+            </button>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  /* ✅ CONTENIDO NORMAL */
   return (
     <div className="page">
       <div className="card">
@@ -50,7 +90,9 @@ export default function CrearGrupo() {
             onChange={(e) => setNombre(e.target.value)}
             placeholder="Nombre del grupo"
           />
-          <button onClick={crearGrupo}>Crear grupo</button>
+          <button onClick={crearGrupo}>
+            Crear grupo
+          </button>
         </div>
 
         <hr />
@@ -75,6 +117,5 @@ export default function CrearGrupo() {
         )}
       </div>
     </div>
-
   );
 }
