@@ -10,10 +10,28 @@ export default function Grupo() {
   const [searchParams] = useSearchParams();
   const id = searchParams.get("id")
   const navigate = useNavigate();
+  const [exclusiones, setExclusiones] = useState([]);
+  const [fromId, setFromId] = useState("");
+  const [toId, setToId] = useState("");
+
   const [grupo, setGrupo] = useState(null);
   const [participantes, setParticipantes] = useState([]);
   const [nombre, setNombre] = useState("");
   const [sorteos, setSorteos] = useState([]);
+
+  const cargarExclusiones = async () => {
+    const { data } = await supabase
+      .from("exclusiones")
+      .select(`
+        id,
+        from_participante,
+        to_participante
+      `)
+      .eq("grupo_id", id);
+
+    setExclusiones(data);
+  };
+
 
   const cargarGrupo = async () => {
     const { data } = await supabase
@@ -63,8 +81,37 @@ export default function Grupo() {
   };
 
   const sortear = async () => {
-    const resultado = generarSorteo(participantes);
+    // 1️⃣ Cargar exclusiones del grupo
+    const { data: exclusiones, error } = await supabase
+      .from("exclusiones")
+      .select("from_participante, to_participante")
+      .eq("grupo_id", id);
 
+    if (error) {
+      alert("Error cargando exclusiones");
+      return;
+    }
+
+    // 2️⃣ Generar mapa de bloqueos
+    const bloqueos = {};
+    exclusiones.forEach(e => {
+      if (!bloqueos[e.from_participante]) {
+        bloqueos[e.from_participante] = new Set();
+      }
+      bloqueos[e.from_participante].add(e.to_participante);
+    });
+
+    // 3️⃣ Generar sorteo respetando exclusiones
+    let resultado;
+    try {
+      resultado = generarSorteo(participantes, bloqueos);
+    } catch (err) {
+      alert(err.message);
+      return;
+    }
+
+    console.log(resultado)
+    // 4️⃣ Guardar sorteo
     await supabase.from("sorteos").insert(
       resultado.map(r => ({
         ...r,
@@ -73,7 +120,7 @@ export default function Grupo() {
     );
 
     await supabase.from("grupos").update({ sorteado: true }).eq("id", id);
-    alert("🎉 Sorteo realizado");
+    alert("🎉 Sorteo realizado con exclusiones");
     cargarGrupo();
     cargarParticipantes();
   };
@@ -86,6 +133,7 @@ export default function Grupo() {
     if (!confirmar) return;
 
     await supabase.from("grupos").delete().eq("id", id);
+    await supabase.from("exclusiones").delete().eq("grupo_id", id);
     navigate("/");
   };
 
@@ -102,7 +150,27 @@ export default function Grupo() {
     cargarGrupo();
     cargarParticipantes();
     cargarSorteos();
+    cargarExclusiones();
   }, [id]);
+
+  const agregarExclusion = async () => {
+    if (!fromId || !toId || fromId === toId) return;
+
+    console.log(toId, fromId);
+    await supabase.from("exclusiones").insert([
+      { grupo_id: id, from_participante: fromId, to_participante: toId, created_at: new Date().toISOString() },
+      { grupo_id: id, from_participante: toId, to_participante: fromId, created_at: new Date().toISOString() }
+    ]);
+
+    setFromId("");
+    setToId("");
+    cargarExclusiones();
+  };
+
+  const eliminarExclusion = async (exclusionId) => {
+    await supabase.from("exclusiones").delete().eq("id", exclusionId);
+    cargarExclusiones();
+  };
 
   if (!grupo) return <p>Cargando...</p>;
 
@@ -115,7 +183,7 @@ export default function Grupo() {
           Administra participantes y realiza el sorteo
         </p>
 
-        <div style={{justifyContent:"center", display:"flex"}}>
+        <div style={{ justifyContent: "center", display: "flex" }}>
           <button
             onClick={volver}
             style={{ color: "white", marginBottom: 20, marginRight: 50 }}
@@ -152,7 +220,6 @@ export default function Grupo() {
           </p>
         ) : (
           <ul className="list">
-            {console.log(participantes)}
             {participantes.map((p) => {
               const sorteo = sorteos.find(
                 (s) => s.participante_id === p.id
@@ -191,8 +258,53 @@ export default function Grupo() {
             </button>
           </div>
         )}
+        <h2>Exclusiones</h2>
+        {!grupo.sorteado && participantes.length >= 2 && (
+          <>
+            <div className="form" style={{ gap: 8 }}>
+              <select value={fromId} onChange={e => setFromId(e.target.value)}>
+                <option value="">Quién NO regala</option>
+                {participantes.map(p => (
+                  <option key={p.id} value={p.id}>
+                    {p.nombre}
+                  </option>
+                ))}
+              </select>
+
+              <select value={toId} onChange={e => setToId(e.target.value)}>
+                <option value="">A quién</option>
+                {participantes.map(p => (
+                  <option key={p.id} value={p.id}>
+                    {p.nombre}
+                  </option>
+                ))}
+              </select>
+
+              <button onClick={agregarExclusion}>➕ Agregar</button>
+            </div>
+          </>
+        )
+        }
+        {exclusiones.length === 0 ? (
+          <p className="empty">No hay exclusiones</p>
+        ) : (
+          <ul className="list">
+            {exclusiones.map(e => {
+              const from = participantes.find(p => p.id == e.from_participante);
+              const to = participantes.find(p => p.id == e.to_participante);
+
+              return (
+                <li key={e.id} style={{ display: "flex", justifyContent: "space-between" }}>
+                  <span className="texto">
+                    🚫 {from?.nombre} → {to?.nombre}
+                  </span>
+                  {!grupo.sorteado &&(<button onClick={() => eliminarExclusion(e.id)}>❌ Eliminar</button>)}
+                </li>
+              );
+            })}
+          </ul>
+        )}
       </div>
     </div>
-
   );
 }

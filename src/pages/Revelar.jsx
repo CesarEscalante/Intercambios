@@ -8,13 +8,20 @@ export default function Revelar() {
   const [resultado, setResultado] = useState(null);
   const [mostrar, setMostrar] = useState(false);
   const [sorteoId, setSorteoId] = useState(null);
+  const [grupo, setGrupo]= useState(null);
 
   useEffect(() => {
     const cargar = async () => {
       const { data: participante } = await supabase
         .from("participantes")
-        .select("id, nombre")
+        .select("id, nombre, grupo_id")
         .eq("magic_token", token)
+        .single();
+
+      const { data: name } = await supabase
+        .from("grupos")
+        .select("nombre")
+        .eq("id", participante.grupo_id)
         .single();
 
       const { data: sorteo } = await supabase
@@ -32,6 +39,8 @@ export default function Revelar() {
         recibe: sorteo.recibe.nombre,
         yaRevelado: sorteo.revelado,
       });
+
+      setGrupo(name.nombre)
 
       setSorteoId(sorteo.id);
 
@@ -63,13 +72,16 @@ export default function Revelar() {
       <div className="card" style={{ textAlign: "center" }}>
         {!mostrar ? (
           <>
-            <h1>🎁🎅🎄 ¿Listo para descubrir tu santa secreto?</h1>
+            <h1>Hola {resultado.quien}, <br></br>
+            👥 Este es el resultado para "{grupo}", <br></br>
+            🎁🎅🎄 ¿Listo para descubrir tu santa secreto?</h1>
 
             <p className="subtitle">
-             👀 1. Presiona el botón para revelar a quién le darás tu regalo
-             🤫 2. Anote a la persona que se reveló en un lugar seguro sin decirle a nadie
-             🚪 3. Cierra la aplicación 
-             🏃‍♂️ 5. Corra a comprar el regalo 
+              Recuerda lo siguiente:<br></br>
+             👀 1. Presiona el botón para revelar a quién le darás tu regalo<br></br>
+             🤫 2. Anote a la persona que se reveló en un lugar seguro sin decirle a nadie<br></br>
+             🚪 3. Cierra la aplicación <br></br>
+             🏃‍♂️ 5. Corra a comprar el regalo <br></br>
             </p>
 
             <button
@@ -100,12 +112,12 @@ export default function Revelar() {
               </p>
             )}
             {!resultado.yaRevelado && (
-              <div>
+              <div className="texto">
                 <h2>
                   {resultado.quien}, te toca regalarle a:
                 </h2>
 
-                <h1 style={{ marginTop: 12 }}>
+                <h1  style={{ marginTop: 12 }}>
                   🎉🎉🎉 {resultado.recibe} 🎉🎉🎉
                 </h1>
 
