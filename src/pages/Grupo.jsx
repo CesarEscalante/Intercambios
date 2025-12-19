@@ -172,6 +172,11 @@ export default function Grupo() {
     cargarExclusiones();
   };
 
+  const eliminarParticipante = async (eliminado) => {
+    await supabase.from("participantes").delete().eq("id", eliminado);
+    cargarParticipantes();
+  }
+
   if (!grupo) return <p>Cargando...</p>;
 
   return (
@@ -227,9 +232,8 @@ export default function Grupo() {
 
               const yaRevelado = sorteo?.revelado;
               return (
-
                 <li key={p.id}>
-                  <div className="list">
+                  <div className="list" >
                     <h3 className="texto">{p.nombre}</h3>
                     {grupo.sorteado && (
                       <>
@@ -241,6 +245,11 @@ export default function Grupo() {
                         </p>
                       </>
                     )}
+                    {!grupo.sorteado && (
+                      <div style={{ marginTop: 2, textAlign: "center" }}>
+                        <button onClick={() => eliminarParticipante(p.id)}>❌ Eliminar</button>
+                      </div>
+                    )}
                   </div>
                   <hr />
 
@@ -251,13 +260,6 @@ export default function Grupo() {
           </ul>
         )}
 
-        {!grupo.sorteado && participantes.length >= 3 && (
-          <div style={{ marginTop: 20, textAlign: "center" }}>
-            <button onClick={sortear}>
-              🎲 Realizar sorteo
-            </button>
-          </div>
-        )}
         <h2>Exclusiones</h2>
         {!grupo.sorteado && participantes.length >= 2 && (
           <>
@@ -298,11 +300,19 @@ export default function Grupo() {
                   <span className="texto">
                     🚫 {from?.nombre} → {to?.nombre}
                   </span>
-                  {!grupo.sorteado &&(<button onClick={() => eliminarExclusion(e.id)}>❌ Eliminar</button>)}
+                  {!grupo.sorteado && (<button onClick={() => eliminarExclusion(e.id)}>❌ Eliminar</button>)}
                 </li>
               );
             })}
           </ul>
+        )}
+
+        {!grupo.sorteado && participantes.length >= 3 && (
+          <div style={{ marginTop: 20, textAlign: "center" }}>
+            <button onClick={sortear}>
+              🎲 Realizar sorteo
+            </button>
+          </div>
         )}
       </div>
     </div>
